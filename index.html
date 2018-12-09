@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <title>Prezentacija</title>
+</head>
+<body>
+  <div class="wrapper">
+    <div id="container">
+    </div>
+
+    <div class="form-controll">
+      <div class="l-wrap">
+        <input id="in-text" type="text" placeholder="Encryption text">
+
+        <input id="offset" type="text" placeholder="Offset">
+      
+        <button id="trigger">
+        Encrypt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+  <script src="objects.js"></script>
+  <script>
+    let squares = [];
+    let alphabetSquares = [];
+    let outputSquares = [];
+    let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let encriptionTextInput = document.getElementById('in-text');
+    let encryptionButton = document.getElementById('trigger');
+    let offsetInput = document.getElementById('offset');
+    let lastLetter = 0;
+
+    function squresFromText(offset, text, opts) {
+      var color = opts.color || new Color(130, 199, 165);
+      var ml = opts.ml || 10;
+
+      var squares = [];
+      for(var i=0; i < text.length; i++) {
+        squares.push(new TextSquare(
+          ml + i * (TextSquare.SIZE + 5), 
+          offset, 
+          text.charAt(i).toUpperCase(),
+          color
+        ));
+      }
+      return squares;
+    }
+
+    function moveAlphabet(movement) {
+      alphabetSquares.forEach((square) => {
+        square.setRelativeTarget(movement);
+      });
+    }
+
+    var sketch = function(p) {
+      p.setup = function() {
+       // p.createCanvas(720, 540);  
+        p.createCanvas(720, 220);
+     }
+
+      p.draw = function() {
+        p.background(86, 94, 109);
+        squares.forEach((square) => square.draw(p));
+        alphabetSquares.forEach((square) => {
+          square.move(p);
+          square.draw(p);
+        });
+        outputSquares.forEach(square => square.draw(p));
+      }
+
+      alphabetSquares = squresFromText(100, alphabet, {color: new Color(27, 33, 44), ml: 5});
+    }
+
+    new p5(sketch, 'container');
+
+    encryptionButton.addEventListener('click', () => {
+      var firstChar    = encriptionTextInput.value.charAt(lastLetter++).toUpperCase();
+      let letterindex  = alphabet.split('').indexOf(firstChar);
+      let nextIndex    = (letterindex + parseInt(offsetInput.value)) % 26;
+      let movement     = letterindex * (TextSquare.SIZE + 5);
+      let nextMovement = nextIndex * (TextSquare.SIZE + 5);
+      let selected     = alphabetSquares[letterindex];
+      let encription   = alphabetSquares[nextIndex];
+   
+      moveAlphabet(movement);
+      selected.onFinishMove = () => {
+        selected.color = Color.GREEN;
+        selected.onFinishMove = null;
+        setTimeout(() => {
+          moveAlphabet(nextMovement);
+          encription.onFinishMove = () => {
+            encription.color = Color.BLUE;
+            selected.color = Color.DARK;
+            encription.onFinishMove = null;
+            setTimeout(() => {
+              var buffer = "";
+              outputSquares.forEach(square => buffer += square.text)
+              buffer += encription.text;
+              outputSquares = squresFromText(170, buffer, {ml: 5, color: Color.BLUE});
+              encription.color = Color.DARK;
+              moveAlphabet(0);
+            }, 700);
+          }
+        }, 1000);
+      };
+    });
+
+    encriptionTextInput.addEventListener('keyup', () => {
+      squares = squresFromText(30, encriptionTextInput.value, {ml: 5});
+    });
+    squares = squresFromText(30, encriptionTextInput.value, {ml: 5});
+  </script>
+</body>
+</html>
