@@ -7,6 +7,7 @@ class Color {
 }
 
 Color.GREEN = new Color(130, 199, 165);
+Color.LIGHTGREEN = new Color(130, 199, 199);
 Color.DARK  = new Color(27, 33, 44);
 Color.BLUE  = new Color(1,69,172);
 
@@ -30,37 +31,13 @@ class TextSquare {
     p.fill(this.color.r, this.color.g, this.color.b);
 
     p.noStroke();
-    p.rect(this.x, this.y, this.size, this.size, 7);
+    p.rect(this.x, this.y, this.size, this.size)//, 7);
     
     p.fill(255);
     p.textSize(this.textSize);
     p.text(this.text, 
       this.x + this.size / 2 - p.textWidth(this.text) / 2, 
       this.y + this.size / 2 + this.offsetY);
-  }
-
-  setRelativeTarget(offset) {
-    this.targetX = this.origin - offset;
-  }
-
-  setTarget(tx) {
-    this.targetX = tx;
-  }
-
-  move(p) {
-    if(this.targetX) {
-      var toTarget = this.targetX - this.x;
-      var length = Math.abs(this.targetX - this.x);
-      if(length < 1) {
-        this.targetX = null;
-        if(this.onFinishMove) {
-          this.onFinishMove();
-        }
-        return;
-      }
-      toTarget = toTarget / length;
-      this.x += toTarget * this.maxSpeed;
-    }
   }
 }
 

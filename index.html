@@ -21,7 +21,11 @@
         <input id="offset" type="text" placeholder="Offset">
       
         <button id="trigger">
-        Encrypt
+        Next
+        </button>
+
+        <button id="reset">
+        Reset
         </button>
       </div>
     </div>
@@ -37,20 +41,27 @@
     let encriptionTextInput = document.getElementById('in-text');
     let encryptionButton = document.getElementById('trigger');
     let offsetInput = document.getElementById('offset');
+    let resetInput  = document.getElementById('reset');
     let lastLetter = 0;
+    let outputBuffer = "";
 
     function squresFromText(offset, text, opts) {
       var color = opts.color || new Color(130, 199, 165);
       var ml = opts.ml || 10;
 
       var squares = [];
+
+      var size = 12;
       for(var i=0; i < text.length; i++) {
-        squares.push(new TextSquare(
-          ml + i * (TextSquare.SIZE + 5), 
-          offset, 
+        var row = Math.floor(i / size);
+        var col = i % size;
+        var tile = new TextSquare(
+          col * (TextSquare.SIZE+5) + 20,
+          offset + row * (TextSquare.SIZE+5) + 20,
           text.charAt(i).toUpperCase(),
           color
-        ));
+        );
+        squares.push(tile);
       }
       return squares;
     }
@@ -62,62 +73,58 @@
     }
 
     var sketch = function(p) {
-      p.setup = function() {
-       // p.createCanvas(720, 540);  
-        p.createCanvas(720, 220);
+      p.setup = function() {  
+        p.createCanvas(720, 540);
      }
 
       p.draw = function() {
         p.background(86, 94, 109);
         squares.forEach((square) => square.draw(p));
         alphabetSquares.forEach((square) => {
-          square.move(p);
           square.draw(p);
         });
         outputSquares.forEach(square => square.draw(p));
       }
 
-      alphabetSquares = squresFromText(100, alphabet, {color: new Color(27, 33, 44), ml: 5});
+      alphabetSquares = squresFromText(130, alphabet, {color: new Color(27, 33, 44), ml: 5});
     }
 
     new p5(sketch, 'container');
 
     encryptionButton.addEventListener('click', () => {
-      var firstChar    = encriptionTextInput.value.charAt(lastLetter++).toUpperCase();
+      alphabetSquares.forEach((tile) => tile.color = Color.DARK);
+      if(lastLetter >= encriptionTextInput.value.length) {
+        return;
+      }
+
+      let firstSquare  = squares[lastLetter];
+      let firstChar    = encriptionTextInput.value.charAt(lastLetter++).toUpperCase();
       let letterindex  = alphabet.split('').indexOf(firstChar);
       let nextIndex    = (letterindex + parseInt(offsetInput.value)) % 26;
-      let movement     = letterindex * (TextSquare.SIZE + 5);
-      let nextMovement = nextIndex * (TextSquare.SIZE + 5);
       let selected     = alphabetSquares[letterindex];
       let encription   = alphabetSquares[nextIndex];
-   
-      moveAlphabet(movement);
-      selected.onFinishMove = () => {
-        selected.color = Color.GREEN;
-        selected.onFinishMove = null;
-        setTimeout(() => {
-          moveAlphabet(nextMovement);
-          encription.onFinishMove = () => {
-            encription.color = Color.BLUE;
-            selected.color = Color.DARK;
-            encription.onFinishMove = null;
-            setTimeout(() => {
-              var buffer = "";
-              outputSquares.forEach(square => buffer += square.text)
-              buffer += encription.text;
-              outputSquares = squresFromText(170, buffer, {ml: 5, color: Color.BLUE});
-              encription.color = Color.DARK;
-              moveAlphabet(0);
-            }, 700);
-          }
-        }, 1000);
-      };
+
+      firstSquare.color = Color.LIGHTGREEN;
+      selected.color = Color.GREEN;
+      encription.color = Color.BLUE;
+      
+      outputBuffer += encription.text;
+      outputSquares = squresFromText(320, outputBuffer, {ml: 5, color: Color.BLUE});
     });
 
-    encriptionTextInput.addEventListener('keyup', () => {
-      squares = squresFromText(30, encriptionTextInput.value, {ml: 5});
+    resetInput.addEventListener('click', () => {
+      lastLetter = 0;
+      outputSquares = [];
+      squares = [];
+      encriptionTextInput.value = "";
+      offsetInput.value = "";
+      outputBuffer = "";
+      alphabetSquares.forEach(s => s.color = Color.DARK);
     });
-    squares = squresFromText(30, encriptionTextInput.value, {ml: 5});
+    encriptionTextInput.addEventListener('keyup', () => {
+      squares = squresFromText(0, encriptionTextInput.value, {ml: 5});
+    });
+    squares = squresFromText(0, encriptionTextInput.value, {ml: 5});
   </script>
 </body>
 </html>
