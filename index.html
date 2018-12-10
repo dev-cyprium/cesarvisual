@@ -98,13 +98,19 @@
       }
 
       let firstSquare  = squares[lastLetter];
+      firstSquare.color = Color.LIGHTGREEN;
       let firstChar    = encriptionTextInput.value.charAt(lastLetter++).toUpperCase();
       let letterindex  = alphabet.split('').indexOf(firstChar);
+      if(letterindex == -1) {
+        outputBuffer += firstSquare.text;
+        outputSquares = squresFromText(320, outputBuffer, {ml: 5, color: Color.BLUE});
+        return;
+      }
+      
       let nextIndex    = (letterindex + parseInt(offsetInput.value)) % 26;
       let selected     = alphabetSquares[letterindex];
       let encription   = alphabetSquares[nextIndex];
 
-      firstSquare.color = Color.LIGHTGREEN;
       selected.color = Color.GREEN;
       encription.color = Color.BLUE;
       
